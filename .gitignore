@@ -61,6 +61,13 @@ Temporary Items
 !/modules/default/**
 !/modules/README.md**
 
+# My dashboard: custom/vendored modules (others are git submodules)
+!/modules/MMM-CaBiStatus
+!/modules/MMM-CaBiStatus/**
+!/modules/MMM-WMATA
+!/modules/MMM-WMATA/**
+/modules/*/node_modules/
+
 # Ignore changes to the custom css files but keep the sample and main.
 /css/*
 !/css/custom.css.sample
@@ -71,6 +78,9 @@ Temporary Items
 # Ignore users config file but keep the sample.
 /config/*
 !/config/config.js.sample
+# My dashboard: commit the template; secrets live in config/config.env (ignored)
+!/config/config.js.template
+!/config/config.env.sample
 
 # Vim
 ## swap

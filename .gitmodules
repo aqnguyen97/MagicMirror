@@ -1,0 +1,6 @@
+[submodule "modules/MMM-CalendarExt3"]
+	path = modules/MMM-CalendarExt3
+	url = https://github.com/MMRIZE/MMM-CalendarExt3
+[submodule "modules/MMM-GoogleCalendar"]
+	path = modules/MMM-GoogleCalendar
+	url = https://github.com/randomBrainstormer/MMM-GoogleCalendar.git

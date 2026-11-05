@@ -1,0 +1,86 @@
+.MMM-WMATA .module-content {
+  display: flex; /* Use flexbox to align items side by side */
+  flex-direction: row; /* Align items horizontally */
+  justify-content: space-between; /* Add spacing between the lists */
+  width: 100%;
+}
+
+.MMM-WMATA .train-stations,
+.MMM-WMATA .bus-stops {
+  flex: 1; /* Make both sections take equal space */
+  margin: 0 10px; /* Add some spacing between the sections */
+}
+
+.MMM-WMATA .bus-stop {
+  width: fit-content;
+}
+
+.MMM-WMATA .bus-divider {
+  text-align: center; /* Center the ellipsis */
+  font-size: small; /* Adjust the font size */
+  color: #888; /* Optional: Make the ellipsis dimmed */
+  margin: 2px 0; /* Add vertical spacing around the divider */
+}
+
+.MMM-WMATA .train-station__prediction {
+    display: grid;
+    grid-template-areas: "train-line-color train-destination train-minutes-away";
+    grid-template-columns: 10% 75% 15%;
+    gap: 0 5px;
+    padding: 0 5px;
+}
+
+.MMM-WMATA .bus-stop__prediction {
+    display: grid;
+    grid-template-areas: "bus-stop__route bus-stop__direction bus-stop__minutes-away";
+    grid-template-columns: 10% 75% 15%;
+    gap: 0 5px;
+    padding: 0 5px;
+}
+
+.MMM-WMATA .train-station__prediction .train-destination {
+    text-align: left;
+    padding-left: 1em;
+}
+
+.MMM-WMATA .bus-stop__prediction .bus-stop__direction {
+    text-align: left;
+    padding-left: 1em;
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.MMM-WMATA .notice__delays, .MMM-WMATA .notice__alerts {
+    font-weight: bold;
+}
+
+/* Reduce space between the "Trains" title and station name */
+.MMM-WMATA .transit-mode-header {
+  margin-bottom: 5px; /* Decrease the bottom margin */
+}
+
+/* Reduce space between the station name and the timetable */
+.MMM-WMATA .train-station__name {
+  margin-bottom: 5px; /* Decrease the bottom margin */
+}
+
+/* Reduce space between timetable rows */
+.MMM-WMATA .train-station__prediction {
+  margin-bottom: 3px; /* Decrease the bottom margin between rows */
+}
+
+.MMM-WMATA .update-time {
+  text-align: center; /* Center the text */
+  margin-top: auto; /* Push the element to the bottom */
+  padding: 10px; /* Add some padding for spacing */
+  font-size: small; /* Adjust the font size */
+  color: #888;
+}
+
+.MMM-WMATA .divider {
+  width: 0.5px; /* Set the width of the divider */
+  background-color: #888; /* Set the color of the divider */
+  margin: auto 10px; /* Add spacing around the divider */
+  height: 250px;
+}

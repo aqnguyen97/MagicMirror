@@ -1,0 +1,4 @@
+.cabi-table { border-collapse: collapse; }
+.cabi-table th, .cabi-table td { padding: 2px 8px; text-align: left; }
+.cabi-table th { font-weight: 600; }
+.timestamp { margin-top: 4px; }
