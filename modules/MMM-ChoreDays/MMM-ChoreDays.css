@@ -1,0 +1,51 @@
+/* One-line card under the calendar, matching the other cards */
+.MMM-ChoreDays .chores {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  text-align: left;
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 14px 18px;
+  color: #888;          /* "Next up" (a few days away): muted */
+}
+
+.MMM-ChoreDays .chores:empty {
+  display: none;
+}
+
+.MMM-ChoreDays .chores__icon {
+  flex: none;
+  width: 28px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.MMM-ChoreDays .chores__main {
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.MMM-ChoreDays .chores__note {
+  font-size: 16px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Needs attention today/tonight: bright, with a soft highlight like the calendar's Today block */
+.MMM-ChoreDays .chores--urgent {
+  color: #fff;
+  background-color: rgb(255 255 255 / 7%);
+}
+
+.MMM-ChoreDays .chores--urgent .chores__icon {
+  color: #3fa66b;
+}
+
+/* Shorter screens (e.g. laptops) */
+@media (max-height: 1000px) {
+  .MMM-ChoreDays .chores { padding: 10px 14px; }
+  .MMM-ChoreDays .chores__main { font-size: 19px; }
+  .MMM-ChoreDays .chores__note { font-size: 14px; }
+}

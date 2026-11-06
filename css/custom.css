@@ -24,6 +24,10 @@
   text-align: left;
 }
 
+.region.top.left .container > .module {
+  text-align: left;
+}
+
 /* Every card fills its column */
 .region.top.left .module,
 .region.top.right .module {

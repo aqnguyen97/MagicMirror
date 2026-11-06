@@ -136,7 +136,12 @@ module.exports = NodeHelper.create({
                 return response.json();
             })
             .then((data) => {
-                const stopPredictions = Array.isArray(data['Predictions']) ? data['Predictions'] : [];
+                // An error reply (e.g. rate limit) has no Predictions list: fail this round so the
+                // card keeps its last bus times and its status bar ages, instead of showing "no buses".
+                if (!Array.isArray(data['Predictions'])) {
+                    throw new Error(`No bus data for stop ${stopID}: ${JSON.stringify(data).slice(0, 200)}`);
+                }
+                const stopPredictions = data['Predictions'];
 
                 return { stopID: stopID,
                          predictions: stopPredictions,

@@ -148,6 +148,15 @@ let config = {
 			},
 		},  
 		{
+			module: "MMM-ChoreDays",	// one line above the calendar: trash/recycling day or holiday
+			position: "top_left",
+			config: {
+				trashDays: [2, 5],	// Tuesday, Friday (0 = Sunday)
+				recyclingDays: [2],	// Tuesday
+				// Pickups move a day later for the rest of a week with a weekday federal or DC holiday.
+			}
+		},
+		{
 			module: "MMM-WeekAgenda",	// vertical week: expanded today + one row per day
 			position: "top_left",
 		},
