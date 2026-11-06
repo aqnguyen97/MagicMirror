@@ -9,3 +9,194 @@
     --gap-body-right: 30px;
   }
 }
+
+/* ------------------------------------------------------------------
+ * MMM-CalendarExt3: card style matching the transit and bikeshare panels.
+ * Overrides live here so the calendar module itself stays untouched.
+ * ------------------------------------------------------------------ */
+.MMM-CalendarExt3 .CX3 {
+  --celllinecolor: #333;
+  --cellbgcolor: transparent;
+
+  box-sizing: border-box;
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+}
+
+/* Weekday names: muted, like the card headers */
+.MMM-CalendarExt3 .CX3 .weekday {
+  color: #888;
+  font-size: 16px;
+  padding-bottom: 4px;
+}
+
+/* Days separated by thin dividers instead of boxed cells */
+.MMM-CalendarExt3 .CX3 .cell,
+.MMM-CalendarExt3 .CX3 .thisMonth {
+  border: none;
+  border-left: 0.5px solid var(--celllinecolor);
+  background-color: transparent;
+}
+
+.MMM-CalendarExt3 .CX3 .cell:first-child {
+  border-left: none;
+}
+
+/* Date numbers: muted and left-aligned */
+.MMM-CalendarExt3 .CX3 .cellHeader {
+  justify-content: flex-start;
+  text-align: left;
+  color: #888;
+  font-size: 15px;
+  padding: 2px 6px;
+}
+
+/* Today: soft highlight instead of a hard white border */
+.MMM-CalendarExt3 .CX3 .cell.today {
+  border-left-color: transparent;
+  background-color: rgb(255 255 255 / 7%);
+  border-radius: 10px;
+}
+
+.MMM-CalendarExt3 .CX3 .cell.today + .cell {
+  border-left-color: transparent;
+}
+
+.MMM-CalendarExt3 .CX3 .today .cellDate {
+  background-color: #fff;
+  color: #000;
+  border-radius: 10px;
+  padding: 1px 8px;
+  flex: none;
+}
+
+/* Hide the gold calendar-week number */
+.MMM-CalendarExt3 .CX3 .cw {
+  display: none !important;
+}
+
+/* Events: a little more breathing room and rounded edges */
+.MMM-CalendarExt3 .CX3 .event {
+  margin: 1px 4px;
+  padding: 0 4px;
+  border-radius: 6px;
+}
+
+.MMM-CalendarExt3 .CX3 .event.passed {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------
+ * Today's weather (two built-in "weather" modules with the
+ * weather-today class): drawn as one card matching the other panels.
+ * The current-conditions module is the top half, the forecast the bottom.
+ * ------------------------------------------------------------------ */
+.weather-today {
+  min-width: 340px;
+  text-align: left;
+  border: 1px solid #444;
+}
+
+.weather-today--current {
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 14px 20px 6px;
+  margin-bottom: 0 !important;
+}
+
+.weather-today--forecast {
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 0 20px 12px;
+}
+
+/* Card header, styled like the transit and bikeshare headers */
+.weather-today--current .module-header {
+  color: #888;
+  font-size: 18px;
+  text-transform: none;
+  border-bottom: none;
+  text-align: left;
+  line-height: 1.4;
+  padding-bottom: 0;
+  margin-bottom: 4px;
+}
+
+.weather-today--current .module-header::before {
+  content: "\f0c2";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-right: 6px;
+}
+
+.weather-today--forecast .module-header {
+  display: none !important;
+}
+
+/* Current conditions: hide the wind line, keep the big temperature and "feels like" */
+.weather-today--current .module-content > div > .normal.medium:first-child {
+  display: none;
+}
+
+.weather-today--current .large {
+  font-size: 60px;
+  line-height: 1.1;
+}
+
+.weather-today--current .large .weathericon {
+  font-size: 44px;
+  margin-right: 10px;
+  vertical-align: 8px;
+}
+
+.weather-today--current .feelslike {
+  font-size: 18px;
+  color: #888;
+}
+
+/* Today's forecast row: divider above, H / L labels, muted rain amount */
+.weather-today--forecast table {
+  width: 100%;
+  border-top: 0.5px solid #333;
+  margin-top: 8px;
+  font-size: 20px;
+}
+
+.weather-today--forecast td {
+  padding: 8px 0 0;
+}
+
+.weather-today--forecast .day {
+  color: #888;
+  padding-right: 10px;
+}
+
+.weather-today--forecast .weather-icon {
+  text-align: center;
+}
+
+.weather-today--forecast .max-temp::before {
+  content: "H ";
+  color: #888;
+}
+
+.weather-today--forecast .min-temp {
+  color: #888;
+}
+
+.weather-today--forecast .min-temp::before {
+  content: "L ";
+}
+
+.weather-today--forecast .precipitation-amount {
+  color: #888;
+}
+
+.weather-today--forecast .precipitation-amount::before {
+  content: "\f043";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-right: 4px;
+  font-size: 15px;
+}

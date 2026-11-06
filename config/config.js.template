@@ -56,17 +56,41 @@ let config = {
 				busWalkMinutes: 2,	// minutes to walk to the bus stops
 			}
 		},
+		/* Today's weather: current conditions + today's high/low and expected rain (Open-Meteo, no API key) */
 		{
-			module: 'MMM-GoogleCalendar',
-			header: "All Upcoming Events",
+			module: "weather",
 			position: "top_right",
+			classes: "weather-today weather-today--current",
 			config: {
-				calendars: [
-					{
-						symbol: "calendar-week",
-						calendarID: "${GOOGLE_CALENDAR_ID}"
-					},
-				],
+				weatherProvider: "openmeteo",
+				roundTemp: true,
+				units: "imperial",	// rain in inches
+				tempUnits: "imperial",	// °F
+				windUnits: "imperial",
+				type: "current",
+				lat: 38.91,	// Shaw, Washington DC (rounded)
+				lon: -77.02,
+				showSun: false,
+				showHumidity: "none",
+				showWindDirection: false,
+			}
+		},
+		{
+			module: "weather",
+			position: "top_right",
+			classes: "weather-today weather-today--forecast",
+			config: {
+				weatherProvider: "openmeteo",
+				roundTemp: true,
+				units: "imperial",	// rain in inches
+				tempUnits: "imperial",	// °F
+				windUnits: "imperial",
+				type: "forecast",
+				lat: 38.91,
+				lon: -77.02,
+				maxNumberOfDays: 1,
+				showPrecipitationAmount: true,
+				fade: false,
 			}
 		},
 		/* default/calendar module configuration */
@@ -102,6 +126,7 @@ let config = {
 				weekIndex: 0,
 				calendarSet: ["meals", "house"],
 				useIconify: true,
+				useWeather: false,	// today's weather has its own card
 			}
 		},
 		{
