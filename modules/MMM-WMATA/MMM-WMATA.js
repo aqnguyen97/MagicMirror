@@ -21,6 +21,13 @@ Module.register("MMM-WMATA", {
         busIncidentUpdateInterval: 300,
 
         busIncidentRoutes: null,
+
+        // Dashboard layout options
+        trainWalkMinutes: 0,      // minutes to walk to the station; 0 turns off leave-now coloring
+        busWalkMinutes: 0,        // minutes to walk to the bus stop
+        leaveNowWindow: 3,        // arrivals within walk..walk+window minutes are shown as "leave now"
+        laterArrivals: 2,         // how many following arrivals to show next to the big number
+        busStopsLabel: null,      // header for the bus column; defaults to the first stop's name
     },
 
     /**
@@ -135,21 +142,70 @@ Module.register("MMM-WMATA", {
     },
 
     getTemplateData() {
+        const trains = this.formattedTrainData;
+        const buses = this.formattedBusData;
+
+        const lastUpdated = Math.max(
+            Number(this.trainTimesLastUpdatedTimestamp) || 0,
+            Number(this.busTimesLastUpdatedTimestamp) || 0
+        );
+
         return {
-            loading: false,
-            trains: this.formattedTrainData,
-            trainsLastUpdated: this.trainTimesLastUpdatedFormatted,
+            loading: trains === null && buses === null,
 
-            buses: this.formattedBusData,
-            busesLastUpdated: this.busTimesLastUpdatedFormatted,
-            showEmptyBusStops: this.config.showEmptyBusStops,
+            showTrains: this.config.trainStations.length > 0,
+            trainStationName: trains ? trains.stationName : null,
+            trainRows: trains ? trains.rows : [],
+            trainWalkMinutes: this.config.trainWalkMinutes,
 
-            trainDelays: this.trainDelays,
-            trainAlerts: this.trainAlerts,
+            showBuses: this.config.busStops.length > 0,
+            busLabel: this.config.busStopsLabel || (buses ? buses.stopName : null) || "Buses",
+            busRows: buses ? buses.rows : [],
+            busWalkMinutes: this.config.busWalkMinutes,
+            busesLoaded: buses !== null,
 
-            busDelays: this.busDelays,
-            busAlerts: this.busAlerts,
+            notices: this.buildNotices(),
+            updated: lastUpdated ? moment(lastUpdated).format("h:mm A") : null,
         };
+    },
+
+    buildNotices() {
+        const notices = [];
+        const lines = (list) => list.filter(Boolean).map((l) => `${l[0].toUpperCase()}${l.slice(1)}`).join(", ");
+
+        if (this.trainDelays.length > 0) notices.push(`Delays on ${lines(this.trainDelays)} line`);
+        if (this.trainAlerts.length > 0) notices.push(`Alerts on ${lines(this.trainAlerts)} line`);
+        if (this.busDelays.length > 0) notices.push(`Bus delays: ${this.busDelays.join(", ")}`);
+        if (this.busAlerts.length > 0) notices.push(`Bus alerts: ${this.busAlerts.join(", ")}`);
+
+        return notices;
+    },
+
+    /**
+     * Turns a list of arrival rows (each with a `minutes` array) into display rows:
+     * the next arrival, a few later ones, and a status for the leave-now coloring.
+     */
+    finishRows(rows, walkMinutes) {
+        return rows.map((row) => {
+            const minutes = row.minutes.sort((a, b) => a - b);
+            const next = minutes[0];
+
+            let status = "";
+            if (walkMinutes > 0) {
+                if (next < walkMinutes) {
+                    status = "missed";
+                } else if (next < walkMinutes + this.config.leaveNowWindow) {
+                    status = "go";
+                }
+            }
+
+            return {
+                ...row,
+                next,
+                later: minutes.slice(1, 1 + this.config.laterArrivals),
+                status,
+            };
+        });
     },
 
     startFetchingLoops() {
@@ -267,46 +323,66 @@ Module.register("MMM-WMATA", {
     },
 
     formatTrains(trains) {
-        const formattedMap = Map.groupBy(
-            trains,
-            ({ LocationName }) => LocationName
-        );
+        const passengerLines = ["RD", "BL", "YL", "OR", "GR", "SV"];
+        const rowsByKey = new Map();
 
-        const formatted = [];
+        for (const train of trains) {
+            // Skip "No Passenger" trains and arrivals with no time yet
+            if (!passengerLines.includes(train["Line"]) || train["MinNumber"] < 0) continue;
 
-        for (const [location, trains] of formattedMap) {
-            const locationFormatted = {
-                locationName: location,
-                trains: trains.map((train) => {
-                    return {
-                        line: train['Line'],
-                        minutes: train['MinNumber'],
-                        destination: train['DestinationName'] || train['Destination'],
-                        location: train['LocationName']
-                    };
-                })
-            };
+            const destination = train["DestinationName"] || train["Destination"];
+            const key = `${train["Group"]}|${train["Line"]}|${destination}`;
 
-            formatted.push(locationFormatted);
+            if (!rowsByKey.has(key)) {
+                rowsByKey.set(key, {
+                    line: train["Line"],
+                    destination,
+                    group: String(train["Group"]),
+                    minutes: [],
+                });
+            }
+            rowsByKey.get(key).minutes.push(train["MinNumber"]);
         }
 
-        return formatted;
+        const rows = this.finishRows([...rowsByKey.values()], this.config.trainWalkMinutes)
+            .sort((a, b) => a.group.localeCompare(b.group) || a.next - b.next);
+
+        // Mark the first row of each track group so the template can add a gap
+        rows.forEach((row, i) => {
+            row.newGroup = i > 0 && rows[i - 1].group !== row.group;
+        });
+
+        return {
+            stationName: trains.length > 0 ? trains[0]["LocationName"] : null,
+            rows,
+        };
     },
 
     formatBuses(busPredictions) {
-        const formatted = [];
+        const rowsByKey = new Map();
+        let stopName = null;
 
-        for (const [busStopID, stopInfo] of Object.entries(busPredictions)) {
-            const locationFormatted = {
-                locationName: stopInfo['locationName'],
-                busStopID,
-                buses: stopInfo['predictions'],
-            };
+        for (const stopInfo of Object.values(busPredictions)) {
+            stopName = stopName || stopInfo["locationName"];
 
-            formatted.push(locationFormatted);
+            for (const prediction of stopInfo["predictions"] || []) {
+                const key = `${prediction["RouteID"]}|${prediction["DirectionText"]}`;
+
+                if (!rowsByKey.has(key)) {
+                    rowsByKey.set(key, {
+                        route: prediction["RouteID"],
+                        direction: prediction["DirectionText"],
+                        minutes: [],
+                    });
+                }
+                rowsByKey.get(key).minutes.push(prediction["Minutes"]);
+            }
         }
 
-        return formatted;
+        const rows = this.finishRows([...rowsByKey.values()], this.config.busWalkMinutes)
+            .sort((a, b) => a.next - b.next);
+
+        return { stopName, rows };
     },
 
     formatTrainLine(trainLine) {

@@ -51,6 +51,9 @@ let config = {
 				busStops: ['1001606', '1001602'],
 				showBusIncidents: false,
 				showTrainIncidents: false,
+				busStopsLabel: "7th St & S St",
+				trainWalkMinutes: 5,	// minutes to walk to Shaw-Howard; adjust to your real time
+				busWalkMinutes: 2,	// minutes to walk to the bus stops
 			}
 		},
 		{

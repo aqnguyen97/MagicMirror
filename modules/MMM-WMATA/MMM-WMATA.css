@@ -1,86 +1,152 @@
-.MMM-WMATA .module-content {
-  display: flex; /* Use flexbox to align items side by side */
-  flex-direction: row; /* Align items horizontally */
-  justify-content: space-between; /* Add spacing between the lists */
-  width: 100%;
+.MMM-WMATA .wmata {
+  --wmata-go: #7cfc9a;
+  --wmata-missed: #555;
+  --wmata-muted: #888;
+  --wmata-rule: #333;
+
+  min-width: 640px;
+  text-align: left;
+
+  /* Card look: rounded outline around the whole panel */
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 16px 20px;
 }
 
-.MMM-WMATA .train-stations,
-.MMM-WMATA .bus-stops {
-  flex: 1; /* Make both sections take equal space */
-  margin: 0 10px; /* Add some spacing between the sections */
+/* Alert banner: only rendered when there are delays or alerts */
+.MMM-WMATA .wmata-notice {
+  background: #3a2a00;
+  color: #ffd27a;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-bottom: 16px;
+  font-size: 18px;
+  line-height: 1.3;
 }
 
-.MMM-WMATA .bus-stop {
-  width: fit-content;
+.MMM-WMATA .wmata-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
 }
 
-.MMM-WMATA .bus-divider {
-  text-align: center; /* Center the ellipsis */
-  font-size: small; /* Adjust the font size */
-  color: #888; /* Optional: Make the ellipsis dimmed */
-  margin: 2px 0; /* Add vertical spacing around the divider */
+.MMM-WMATA .wmata-column__header {
+  color: var(--wmata-muted);
+  font-size: 18px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.MMM-WMATA .train-station__prediction {
-    display: grid;
-    grid-template-areas: "train-line-color train-destination train-minutes-away";
-    grid-template-columns: 10% 75% 15%;
-    gap: 0 5px;
-    padding: 0 5px;
+.MMM-WMATA .wmata-column__walk {
+  color: #666;
 }
 
-.MMM-WMATA .bus-stop__prediction {
-    display: grid;
-    grid-template-areas: "bus-stop__route bus-stop__direction bus-stop__minutes-away";
-    grid-template-columns: 10% 75% 15%;
-    gap: 0 5px;
-    padding: 0 5px;
+/* One row per line + destination (trains) or route + direction (buses) */
+.MMM-WMATA .wmata-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 0.5px solid var(--wmata-rule);
 }
 
-.MMM-WMATA .train-station__prediction .train-destination {
-    text-align: left;
-    padding-left: 1em;
+.MMM-WMATA .wmata-row:last-of-type {
+  border-bottom: none;
 }
 
-.MMM-WMATA .bus-stop__prediction .bus-stop__direction {
-    text-align: left;
-    padding-left: 1em;
-    overflow: hidden; /* Hide overflow text */
-    text-overflow: ellipsis; /* Add ellipsis for truncated text */
-    white-space: nowrap; /* Prevent text from wrapping */
+.MMM-WMATA .wmata-row--new-group {
+  margin-top: 14px;
 }
 
-.MMM-WMATA .notice__delays, .MMM-WMATA .notice__alerts {
-    font-weight: bold;
+.MMM-WMATA .wmata-row__name {
+  flex: 1;
+  min-width: 0;
+  color: #fff;
+  font-size: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Reduce space between the "Trains" title and station name */
-.MMM-WMATA .transit-mode-header {
-  margin-bottom: 5px; /* Decrease the bottom margin */
+.MMM-WMATA .wmata-row__next {
+  color: #fff;
+  font-size: 40px;
+  line-height: 1;
+  min-width: 70px;
+  text-align: right;
 }
 
-/* Reduce space between the station name and the timetable */
-.MMM-WMATA .train-station__name {
-  margin-bottom: 5px; /* Decrease the bottom margin */
+.MMM-WMATA .wmata-row__next--go,
+.MMM-WMATA .wmata-row__next--go .wmata-row__unit {
+  color: var(--wmata-go);
 }
 
-/* Reduce space between timetable rows */
-.MMM-WMATA .train-station__prediction {
-  margin-bottom: 3px; /* Decrease the bottom margin between rows */
+.MMM-WMATA .wmata-row__next--missed,
+.MMM-WMATA .wmata-row__next--missed .wmata-row__unit {
+  color: var(--wmata-missed);
 }
 
-.MMM-WMATA .update-time {
-  text-align: center; /* Center the text */
-  margin-top: auto; /* Push the element to the bottom */
-  padding: 10px; /* Add some padding for spacing */
-  font-size: small; /* Adjust the font size */
-  color: #888;
+.MMM-WMATA .wmata-row__unit {
+  color: var(--wmata-muted);
+  font-size: 14px;
+  margin-left: 3px;
 }
 
-.MMM-WMATA .divider {
-  width: 0.5px; /* Set the width of the divider */
-  background-color: #888; /* Set the color of the divider */
-  margin: auto 10px; /* Add spacing around the divider */
-  height: 250px;
+.MMM-WMATA .wmata-row__now {
+  font-size: 28px;
+}
+
+.MMM-WMATA .wmata-row__later {
+  color: var(--wmata-muted);
+  font-size: 18px;
+  width: 60px;
+  text-align: right;
+}
+
+/* Metro line pills in official WMATA colors */
+.MMM-WMATA .wmata-line {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+}
+
+.MMM-WMATA .wmata-line--RD { background: #bf0d3e; color: #fff; }
+.MMM-WMATA .wmata-line--OR { background: #ed8b00; }
+.MMM-WMATA .wmata-line--YL { background: #ffd100; }
+.MMM-WMATA .wmata-line--GR { background: #00b140; }
+.MMM-WMATA .wmata-line--BL { background: #009cde; }
+.MMM-WMATA .wmata-line--SV { background: #919d9d; }
+
+/* Bus route badge: outlined so it reads differently from Metro */
+.MMM-WMATA .wmata-route {
+  flex: none;
+  min-width: 34px;
+  padding: 3px 6px;
+  border: 1px solid var(--wmata-muted);
+  border-radius: 4px;
+  text-align: center;
+  font-size: 16px;
+  color: #fff;
+}
+
+.MMM-WMATA .wmata-empty {
+  color: var(--wmata-muted);
+  font-size: 18px;
+  padding: 6px 0;
+}
+
+.MMM-WMATA .wmata-updated {
+  color: #666;
+  font-size: 14px;
+  text-align: right;
+  margin-top: 12px;
 }
