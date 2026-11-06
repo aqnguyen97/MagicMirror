@@ -3,8 +3,48 @@
  * Has no position and draws nothing itself.
  *
  * - Hourly weather: shows "8 pm" instead of "8:00 pm".
+ * - With a position: a one-line legend for the status dots on the transit and
+ *   bikeshare cards (keep the minutes in sync with those modules' config).
  */
 Module.register("MMM-DashboardTweaks", {
+    defaults: {
+        statusAgingMinutes: 2,
+        statusStaleMinutes: 5,
+        statusErrorMinutes: 30
+    },
+
+    getDom() {
+        const legend = document.createElement("div");
+        legend.className = "status-legend";
+
+        const items = [
+            ["fresh", `Updated < ${this.config.statusAgingMinutes} min ago`],
+            ["aging", `${this.config.statusAgingMinutes}–${this.config.statusStaleMinutes} min`],
+            ["stale", `Over ${this.config.statusStaleMinutes} min`]
+        ];
+
+        for (const [status, label] of items) {
+            const item = document.createElement("span");
+            item.className = "status-legend__item";
+            const dot = document.createElement("span");
+            dot.className = `status-dot status-dot--${status}`;
+            item.appendChild(dot);
+            item.appendChild(document.createTextNode(label));
+            legend.appendChild(item);
+        }
+
+        // Long outage: the dot is replaced by a warning with the last update time
+        const error = document.createElement("span");
+        error.className = "status-legend__item status-legend__item--error";
+        const icon = document.createElement("i");
+        icon.className = "fas fa-triangle-exclamation";
+        error.appendChild(icon);
+        error.appendChild(document.createTextNode(`Over ${this.config.statusErrorMinutes} min`));
+        legend.appendChild(error);
+
+        return legend;
+    },
+
     notificationReceived(notification) {
         if (notification === "DOM_OBJECTS_CREATED") {
             this.watchHourlyWeather();

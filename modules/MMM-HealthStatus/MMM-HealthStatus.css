@@ -1,0 +1,47 @@
+/* Top-right corner of the top bar, next to the centered clock */
+.region.top.bar .MMM-HealthStatus {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Vertical list, right-aligned: Wi-Fi on top, then CPU temperature */
+.MMM-HealthStatus .health {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  color: #888;          /* muted gray when everything is fine */
+  font-size: 16px;
+}
+
+.MMM-HealthStatus .health-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.MMM-HealthStatus .health-item--warn { color: #ffb020; }
+.MMM-HealthStatus .health-item--bad { color: #ff5a4f; }
+
+/* Signal strength: three small rising bars */
+.MMM-HealthStatus .health-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.MMM-HealthStatus .health-bars__bar {
+  width: 4px;
+  border-radius: 1px;
+  background: #333;
+}
+
+.MMM-HealthStatus .health-bars__bar--1 { height: 5px; }
+.MMM-HealthStatus .health-bars__bar--2 { height: 9px; }
+.MMM-HealthStatus .health-bars__bar--3 { height: 14px; }
+.MMM-HealthStatus .health-bars__bar.is-on { background: #888; }
+
+/* Indicator with no data on this device (e.g. CPU temperature on a Mac) */
+.MMM-HealthStatus .health-item--unavailable { color: #444; }

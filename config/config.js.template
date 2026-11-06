@@ -39,11 +39,12 @@ let config = {
 
 	modules: [
 		{
-			module: "MMM-DashboardTweaks",	// no position: small display fixes for other modules
-		},
-		{
 			module: "clock",
 			position: "top_bar"	// centered across the top
+		},
+		{
+			module: "MMM-HealthStatus",	// Wi-Fi/internet + Pi temperature icons, top-right corner
+			position: "top_bar",
 		},
 		/* Today's weather: current conditions + today's high/low and expected rain (Open-Meteo, no API key) */
 		{
@@ -159,8 +160,16 @@ let config = {
 			  updateInterval: 30 * 1000,
 			  showDocks: false
 			}
-		  }
-		  
+		},
+		{
+			module: "MMM-DashboardTweaks",	// display fixes + status-dot legend (last in the right column)
+			position: "top_right",
+			config: {
+				statusAgingMinutes: 2,	// keep in sync with MMM-WMATA / MMM-CaBiStatus
+				statusStaleMinutes: 5,
+				statusErrorMinutes: 30,
+			}
+		},
 	]
 };
 

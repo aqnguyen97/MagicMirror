@@ -1,3 +1,12 @@
+{# Header status: a colored dot, or after a long time without data a warning with the last update time #}
+{% macro statusIndicator(status, lastUpdatedLabel) %}
+    {% if status == "error" %}
+        <span class="status-error"><i class="fas fa-triangle-exclamation"></i> {{ "Last updated " + lastUpdatedLabel if lastUpdatedLabel else "Can't load data" }}</span>
+    {% elif status %}
+        <span class="status-dot status-dot--{{ status }}"></span>
+    {% endif %}
+{% endmacro %}
+
 {% macro arrival(row) %}
     <span class="wmata-row__next wmata-row__next--{{ row.status }}">
         {% if not row.hasNext %}
@@ -11,8 +20,10 @@
     <span class="wmata-row__later">{{ row.later | join(", ") if row.later.length else "" }}</span>
 {% endmacro %}
 
-{% if loading %}
-    <div class="dimmed light small">Loading transit times…</div>
+{% if loadFailed %}
+    <div class="wmata wmata--message"><span class="status-error"><i class="fas fa-triangle-exclamation"></i> Can't load transit data</span></div>
+{% elif loading %}
+    <div class="wmata wmata--message">Loading transit times…</div>
 {% else %}
 <div class="wmata">
 
@@ -33,7 +44,7 @@
                     {{ trainStationName or "Metro" }}
                     {% if showWalkTimes and trainWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ trainWalkMinutes }} min walk</span>{% endif %}
                 </span>
-                {% if updated and not showBuses %}<span class="wmata-updated">Updated {{ updated }}</span>{% endif %}
+                {% if not showBuses %}{{ statusIndicator(status, lastUpdatedLabel) }}{% endif %}
             </div>
 
             {% for row in trainRows %}
@@ -56,7 +67,7 @@
                     {{ busLabel }}
                     {% if showWalkTimes and busWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ busWalkMinutes }} min walk</span>{% endif %}
                 </span>
-                {% if updated %}<span class="wmata-updated">Updated {{ updated }}</span>{% endif %}
+                {{ statusIndicator(status, lastUpdatedLabel) }}
             </div>
 
             {% for row in busRows %}

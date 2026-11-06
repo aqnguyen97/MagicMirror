@@ -156,10 +156,24 @@
   padding: 6px 0;
 }
 
-/* "Updated" time, shown at the right end of the last column's header */
-.MMM-WMATA .wmata-updated {
+/* Data status dot at the right end of the last column's header:
+   green = fresh, amber = getting old, red = out of date */
+.MMM-WMATA .status-dot {
   flex: none;
-  color: #666;
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.MMM-WMATA .status-dot--fresh { background: #3fa66b; opacity: 0.7; }
+.MMM-WMATA .status-dot--aging { background: #ffb020; }
+.MMM-WMATA .status-dot--stale { background: #ff5a4f; }
+
+/* After statusErrorMinutes without data: warning icon + last update time */
+.MMM-WMATA .status-error {
+  flex: none;
+  color: #ff5a4f;
   font-size: 14px;
 }
 
@@ -191,4 +205,10 @@
 .MMM-WMATA .wmata-row__none {
   color: var(--wmata-muted);
   font-size: 28px;
+}
+
+/* Loading / can't-load message, shown inside the card frame */
+.MMM-WMATA .wmata--message {
+  color: var(--wmata-muted);
+  font-size: 18px;
 }

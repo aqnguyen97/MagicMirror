@@ -9,6 +9,7 @@ Personal customizations live on the `my-dashboard` branch. `master` tracks upstr
 - `css/custom.css`: dashboard layout (centered clock, two columns) and the weather card styling.
 - `modules/MMM-WeekAgenda`: my own module. Vertical week calendar (expanded today + one row per day); gets events from the built-in `calendar` module.
 - `modules/MMM-CaBiStatus`: my own module.
+- `modules/MMM-HealthStatus`: my own module. Wi-Fi/internet icon (signal bars on the Pi) and Pi CPU temperature, top-right corner.
 - `modules/MMM-DashboardTweaks`: my own module. Small display fixes for other modules (e.g. "8 pm" instead of "8:00 pm" in the hourly weather).
 - `modules/MMM-WMATA`: copy of btoconnor/MMM-WMATA (upstream commit 7204681) with my style/template edits and bus groups.
 - `modules/MMM-CalendarExt3`: git submodule pointing at the original repo. Not used in the config anymore (replaced by MMM-WeekAgenda).

@@ -70,6 +70,8 @@ Temporary Items
 !/modules/MMM-DashboardTweaks/**
 !/modules/MMM-WeekAgenda
 !/modules/MMM-WeekAgenda/**
+!/modules/MMM-HealthStatus
+!/modules/MMM-HealthStatus/**
 /modules/*/node_modules/
 
 # Ignore changes to the custom css files but keep the sample and main.

@@ -64,6 +64,13 @@ module.exports = NodeHelper.create({
             .then((data) => {
                 const trainDataRaw = data['Trains'];
 
+                // WMATA sometimes answers with an error (e.g. rate limit) instead of train data.
+                // Skip this round; the dashboard keeps the last times and its status dot ages.
+                if (!Array.isArray(trainDataRaw)) {
+                    Log.warn(`[MMM-WMATA] No train data in response: ${JSON.stringify(data).slice(0, 200)}`);
+                    return;
+                }
+
                 const trainDataFormatted = trainDataRaw.map((trainData) => this.formatTrainData(trainData));
                 this.sendSocketNotification("WMATA_TRAIN_TIMES_DATA", {
                     identifier: payload.identifier,
@@ -126,7 +133,7 @@ module.exports = NodeHelper.create({
                 return response.json();
             })
             .then((data) => {
-                const stopPredictions = data['Predictions'];
+                const stopPredictions = Array.isArray(data['Predictions']) ? data['Predictions'] : [];
 
                 return { stopID: stopID,
                          predictions: stopPredictions,

@@ -7,12 +7,21 @@ Module.register("MMM-CaBiStatus", {
         updateInterval: 30 * 1000, // 30s
         showDocks: true,
         header: "Capital Bikeshare",
-        lowThreshold: 2            // counts at or below this are highlighted as "running low"
+        lowThreshold: 2,           // counts at or below this are highlighted as "running low"
+        statusAgingMinutes: 2,     // status dot turns amber when data is this old
+        statusStaleMinutes: 5,     // ...and red at this age
+        statusErrorMinutes: 30,    // ...and at this age a warning icon + "Last updated <time>" replaces the dot
+        loadTimeoutMinutes: 2      // after this long with no data at all, show "Can't load data"
     },
 
     start() {
         this.stations = {}; // { station_id: {name, ebikes, classic, docks, lastReported} }
         this.loaded = false;
+        this.lastFetched = null;   // when the dashboard last received data (not when stations reported)
+        this.startedAt = Date.now();
+
+        // Re-draw every 30s even if no new data arrives, so the status dot can age
+        setInterval(() => this.updateDom(), 30 * 1000);
         this.sendSocketNotification("CABI_CONFIG", {
             stationIds: this.config.stationIds,
             updateInterval: this.config.updateInterval
@@ -28,6 +37,7 @@ Module.register("MMM-CaBiStatus", {
         if (notification === "CABI_DATA") {
             this.stations = payload;
             this.loaded = true;
+            this.lastFetched = Date.now();
             this.updateDom();
         }
     },
@@ -70,7 +80,15 @@ Module.register("MMM-CaBiStatus", {
         card.appendChild(header);
 
         if (!this.loaded) {
-            card.appendChild(this.el("div", "cabi__empty", "Loading bike availability…"));
+            const waitedMinutes = (Date.now() - this.startedAt) / 60000;
+            if (waitedMinutes >= this.config.loadTimeoutMinutes) {
+                const error = this.el("div", "cabi__empty status-error");
+                error.appendChild(this.el("i", "fas fa-triangle-exclamation"));
+                error.appendChild(document.createTextNode(" Can't load bike data"));
+                card.appendChild(error);
+            } else {
+                card.appendChild(this.el("div", "cabi__empty", "Loading bike availability…"));
+            }
             return card;
         }
 
@@ -99,11 +117,23 @@ Module.register("MMM-CaBiStatus", {
             card.appendChild(this.el("div", "cabi__empty", "No station data"));
         }
 
-        // "Updated" time sits at the right end of the header line
-        const latest = Math.max(0, ...Object.values(this.stations).map(s => s.lastReported || 0));
-        if (latest) {
-            const time = new Date(latest * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            header.appendChild(this.el("span", "cabi__updated", `Updated ${time}`));
+        // Status dot at the right end of the header: green = fresh, amber = getting old, red = out of date
+        if (this.lastFetched) {
+            const ageMinutes = (Date.now() - this.lastFetched) / 60000;
+
+            if (ageMinutes >= this.config.statusErrorMinutes) {
+                // Long outage: warning icon + when data last arrived
+                const time = moment(this.lastFetched).format(config.timeFormat === 24 ? "HH:mm" : "h:mm a");
+                const error = this.el("span", "status-error");
+                error.appendChild(this.el("i", "fas fa-triangle-exclamation"));
+                error.appendChild(document.createTextNode(` Last updated ${time}`));
+                header.appendChild(error);
+            } else {
+                let status = "fresh";
+                if (ageMinutes >= this.config.statusStaleMinutes) status = "stale";
+                else if (ageMinutes >= this.config.statusAgingMinutes) status = "aging";
+                header.appendChild(this.el("span", `status-dot status-dot--${status}`));
+            }
         }
 
         return card;

@@ -27,6 +27,10 @@ Module.register("MMM-WMATA", {
         busWalkMinutes: 0,        // minutes to walk to the bus stop
         leaveNowWindow: 3,        // arrivals within walk..walk+window minutes are shown as "leave now"
         showWalkTimes: true,      // show "· N min walk" in the column headers
+        statusAgingMinutes: 2,    // status dot turns amber when data is this old
+        statusStaleMinutes: 5,    // ...and red at this age
+        statusErrorMinutes: 30,   // ...and at this age a warning icon + "Last updated <time>" replaces the dot
+        loadTimeoutMinutes: 2,    // after this long with no data at all, show "Can't load data"
         laterArrivals: 2,         // how many following arrivals to show next to the big number
         busStopsLabel: null,      // header for the bus column; defaults to the first stop's name
         ignoreBusRoutes: {},      // routes to hide per stop, e.g. { "1001653": ["C57"] }
@@ -74,6 +78,11 @@ Module.register("MMM-WMATA", {
 
         this.activeBusStops = [];
 
+        this.startedAt = Date.now();
+
+        // Re-draw every 30s even if no new data arrives, so the status dot can age
+        setInterval(() => this.updateDom(), 30 * 1000);
+
         Log.info("WMATA Starting");
 
         this.sendSocketNotification("WMATA_INIT", {
@@ -109,7 +118,7 @@ Module.register("MMM-WMATA", {
                     this.busTimesLastUpdatedTimestamp = now.format("x");
                     this.busTimesLastUpdatedFormatted = now.format("MMM D - h:mm:ss a");
                     this.activeBusStops = Object.keys(payload.busPredictions).filter((stopID) => {
-                        return payload.busPredictions[stopID].predictions.length > 0;
+                        return (payload.busPredictions[stopID].predictions || []).length > 0;
                     });
 
                     console.log("active stops");
@@ -157,13 +166,11 @@ Module.register("MMM-WMATA", {
         const trains = this.formattedTrainData;
         const buses = this.formattedBusData;
 
-        const lastUpdated = Math.max(
-            Number(this.trainTimesLastUpdatedTimestamp) || 0,
-            Number(this.busTimesLastUpdatedTimestamp) || 0
-        );
 
         return {
             loading: trains === null && buses === null,
+            loadFailed: trains === null && buses === null
+                && (Date.now() - this.startedAt) / 60000 >= this.config.loadTimeoutMinutes,
 
             showTrains: this.config.trainStations.length > 0,
             trainStationName: trains ? trains.stationName : null,
@@ -178,8 +185,42 @@ Module.register("MMM-WMATA", {
             busesLoaded: buses !== null,
 
             notices: this.buildNotices(),
-            updated: lastUpdated ? moment(lastUpdated).format("h:mm A") : null,
+            status: this.dataStatus(),
+            lastUpdatedLabel: this.lastUpdatedLabel(),
         };
+    },
+
+    /**
+     * "fresh", "aging" or "stale" depending on how long ago the oldest feed (trains or
+     * buses) last updated; null until both have loaded once.
+     */
+    dataStatus() {
+        const timestamps = [];
+        if (this.config.trainStations.length > 0) timestamps.push(Number(this.trainTimesLastUpdatedTimestamp) || 0);
+        if (this.config.busStops.length > 0) timestamps.push(Number(this.busTimesLastUpdatedTimestamp) || 0);
+        if (timestamps.length === 0) return null;
+
+        // A feed that has never loaded: nothing yet during startup, then an error
+        if (timestamps.includes(0)) {
+            const waitedMinutes = (Date.now() - this.startedAt) / 60000;
+            return waitedMinutes >= this.config.loadTimeoutMinutes ? "error" : null;
+        }
+
+        const ageMinutes = (Date.now() - Math.min(...timestamps)) / 60000;
+        if (ageMinutes >= this.config.statusErrorMinutes) return "error";
+        if (ageMinutes >= this.config.statusStaleMinutes) return "stale";
+        if (ageMinutes >= this.config.statusAgingMinutes) return "aging";
+        return "fresh";
+    },
+
+    /** Time of the oldest feed's last update, e.g. "8:31 pm" (shown in the error state). */
+    lastUpdatedLabel() {
+        const timestamps = [];
+        if (this.config.trainStations.length > 0) timestamps.push(Number(this.trainTimesLastUpdatedTimestamp) || 0);
+        if (this.config.busStops.length > 0) timestamps.push(Number(this.busTimesLastUpdatedTimestamp) || 0);
+        const oldest = Math.min(...timestamps);
+        // null for a feed that never loaded; the template then says "Can't load data"
+        return oldest ? moment(oldest).format(config.timeFormat === 24 ? "HH:mm" : "h:mm a") : null;
     },
 
     buildNotices() {

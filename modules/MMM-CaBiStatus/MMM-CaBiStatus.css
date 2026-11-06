@@ -95,9 +95,23 @@
   padding: 6px 0;
 }
 
-.MMM-CaBiStatus .cabi__updated {
+/* Data status dot at the right end of the header (matches MMM-WMATA) */
+.MMM-CaBiStatus .status-dot {
   flex: none;
-  color: #666;
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.MMM-CaBiStatus .status-dot--fresh { background: #3fa66b; opacity: 0.7; }
+.MMM-CaBiStatus .status-dot--aging { background: #ffb020; }
+.MMM-CaBiStatus .status-dot--stale { background: #ff5a4f; }
+
+/* After statusErrorMinutes without data: warning icon + last update time */
+.MMM-CaBiStatus .status-error {
+  flex: none;
+  color: #ff5a4f;
   font-size: 14px;
 }
 
