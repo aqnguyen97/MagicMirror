@@ -150,3 +150,15 @@
   text-align: right;
   margin-top: 12px;
 }
+
+/* Compact sizing for shorter screens (e.g. laptops) so the card doesn't run into the calendar */
+@media (max-height: 1000px) {
+  .MMM-WMATA .wmata { padding: 12px 18px; }
+  .MMM-WMATA .wmata-row { padding: 3px 0; }
+  .MMM-WMATA .wmata-row--new-group { margin-top: 8px; }
+  .MMM-WMATA .wmata-row__name { font-size: 19px; }
+  .MMM-WMATA .wmata-row__next { font-size: 32px; }
+  .MMM-WMATA .wmata-row__now { font-size: 24px; }
+  .MMM-WMATA .wmata-line { width: 28px; height: 28px; font-size: 12px; }
+  .MMM-WMATA .wmata-updated { margin-top: 6px; }
+}

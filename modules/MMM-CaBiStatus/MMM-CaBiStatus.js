@@ -3,10 +3,11 @@
 */
 Module.register("MMM-CaBiStatus", {
     defaults: {
-        stationIds: [],           // e.g., ["31205","31214"]
+        stationIds: [],            // e.g., ["31205","31214"]
         updateInterval: 30 * 1000, // 30s
         showDocks: true,
-        header: "Capital Bikeshare"
+        header: "Capital Bikeshare",
+        lowThreshold: 2            // counts at or below this are highlighted as "running low"
     },
 
     start() {
@@ -19,7 +20,9 @@ Module.register("MMM-CaBiStatus", {
     },
 
     getStyles() { return ["MMM-CaBiStatus.css"]; },
-    getHeader() { return this.config.header; },
+
+    // The header is drawn inside the card instead of MagicMirror's default header bar
+    getHeader() { return ""; },
 
     socketNotificationReceived(notification, payload) {
         if (notification === "CABI_DATA") {
@@ -29,49 +32,77 @@ Module.register("MMM-CaBiStatus", {
         }
     },
 
+    el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+    },
+
+    countLevel(value) {
+        if (value === null || value === undefined) return "";
+        if (value === 0) return "cabi-count--empty";
+        if (value <= this.config.lowThreshold) return "cabi-count--low";
+        return "";
+    },
+
+    // A big number with a small icon label underneath, e.g. "7" over a bike icon
+    countCell(value, iconClass, label) {
+        const cell = this.el("div", `cabi-count ${this.countLevel(value)}`);
+        cell.appendChild(this.el("div", "cabi-count__value", value ?? "—"));
+
+        const caption = this.el("div", "cabi-count__label");
+        const icon = this.el("i", iconClass);
+        caption.appendChild(icon);
+        caption.appendChild(document.createTextNode(` ${label}`));
+        cell.appendChild(caption);
+        return cell;
+    },
+
     getDom() {
-        const wrapper = document.createElement("div");
-        if (!this.loaded) { wrapper.innerHTML = "Loading Capital Bikeshare…"; return wrapper; }
+        const card = this.el("div", "cabi");
 
-        const table = document.createElement("table");
-        table.className = "cabi-table small light";
+        const header = this.el("div", "cabi__header");
+        header.appendChild(this.el("i", "fas fa-bicycle"));
+        header.appendChild(document.createTextNode(` ${this.config.header}`));
+        card.appendChild(header);
 
-        // header row
-        const head = document.createElement("tr");
-        ["Station", "Classic", "E-bikes"].concat(this.config.showDocks ? ["Docks"] : []).forEach(h => {
-            const th = document.createElement("th"); th.textContent = h; head.appendChild(th);
-        });
-        table.appendChild(head);
+        if (!this.loaded) {
+            card.appendChild(this.el("div", "cabi__empty", "Loading bike availability…"));
+            return card;
+        }
 
-        // rows
+        let shown = 0;
         this.config.stationIds.forEach(id => {
             const s = this.stations[id];
             if (!s) return;
-            const tr = document.createElement("tr");
-            const cols = [
-                s.name || id,
-                s.classic,
-                s.ebikes
-            ];
-            if (this.config.showDocks) cols.push(s.docks);
+            shown++;
 
-            cols.forEach(val => {
-                const td = document.createElement("td");
-                td.textContent = val ?? "—";
-                tr.appendChild(td);
-            });
-            table.appendChild(tr);
+            const row = this.el("div", "cabi-row");
+            row.appendChild(this.el("div", "cabi-row__name", s.name || id));
+            row.appendChild(this.countCell(s.classic, "fas fa-bicycle", "bikes"));
+            row.appendChild(this.countCell(s.ebikes, "fas fa-bolt", "e-bikes"));
+
+            if (this.config.showDocks) {
+                const docks = this.el("div", "cabi-row__docks");
+                docks.appendChild(this.el("span", "cabi-row__docks-value", s.docks ?? "—"));
+                docks.appendChild(document.createTextNode(" docks"));
+                row.appendChild(docks);
+            }
+
+            card.appendChild(row);
         });
 
-        wrapper.appendChild(table);
+        if (shown === 0) {
+            card.appendChild(this.el("div", "cabi__empty", "No station data"));
+        }
 
-        // timestamp
-        const ts = document.createElement("div");
-        ts.className = "xsmall dimmed timestamp";
-        const latest = Math.max(...Object.values(this.stations).map(s => s.lastReported || 0));
-        if (latest) ts.textContent = `Updated ${new Date(latest * 1000).toLocaleTimeString()}`;
-        wrapper.appendChild(ts);
+        const latest = Math.max(0, ...Object.values(this.stations).map(s => s.lastReported || 0));
+        if (latest) {
+            const time = new Date(latest * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            card.appendChild(this.el("div", "cabi__updated", `Updated ${time}`));
+        }
 
-        return wrapper;
+        return card;
     }
 });

@@ -1,4 +1,101 @@
-.cabi-table { border-collapse: collapse; }
-.cabi-table th, .cabi-table td { padding: 2px 8px; text-align: left; }
-.cabi-table th { font-weight: 600; }
-.timestamp { margin-top: 4px; }
+/* Card matches the MMM-WMATA transit panel */
+.MMM-CaBiStatus .cabi {
+  --cabi-muted: #888;
+  --cabi-rule: #333;
+  --cabi-low: #ffd27a;
+  --cabi-empty: #555;
+
+  min-width: 480px;
+  text-align: left;
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.MMM-CaBiStatus .cabi__header {
+  color: var(--cabi-muted);
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+/* One row per station: name, bikes, e-bikes, docks */
+.MMM-CaBiStatus .cabi-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 0.5px solid var(--cabi-rule);
+}
+
+.MMM-CaBiStatus .cabi-row:last-of-type {
+  border-bottom: none;
+}
+
+.MMM-CaBiStatus .cabi-row__name {
+  flex: 1;
+  min-width: 0;
+  color: #fff;
+  font-size: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.MMM-CaBiStatus .cabi-count {
+  width: 64px;
+  text-align: center;
+  color: #fff;
+}
+
+.MMM-CaBiStatus .cabi-count__value {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.MMM-CaBiStatus .cabi-count__label {
+  color: var(--cabi-muted);
+  font-size: 13px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.MMM-CaBiStatus .cabi-count--low .cabi-count__value {
+  color: var(--cabi-low);
+}
+
+.MMM-CaBiStatus .cabi-count--empty .cabi-count__value {
+  color: var(--cabi-empty);
+}
+
+.MMM-CaBiStatus .cabi-row__docks {
+  width: 70px;
+  text-align: right;
+  color: var(--cabi-muted);
+  font-size: 14px;
+}
+
+.MMM-CaBiStatus .cabi-row__docks-value {
+  font-size: 18px;
+}
+
+.MMM-CaBiStatus .cabi__empty {
+  color: var(--cabi-muted);
+  font-size: 18px;
+  padding: 6px 0;
+}
+
+.MMM-CaBiStatus .cabi__updated {
+  color: #666;
+  font-size: 14px;
+  text-align: right;
+  margin-top: 12px;
+}
+
+/* Compact sizing for shorter screens (e.g. laptops), matching MMM-WMATA */
+@media (max-height: 1000px) {
+  .MMM-CaBiStatus .cabi { padding: 12px 18px; }
+  .MMM-CaBiStatus .cabi-row { padding: 4px 0; }
+  .MMM-CaBiStatus .cabi-row__name { font-size: 19px; }
+  .MMM-CaBiStatus .cabi-count__value { font-size: 32px; }
+  .MMM-CaBiStatus .cabi__updated { margin-top: 6px; }
+}

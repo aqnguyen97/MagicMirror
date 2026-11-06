@@ -1,0 +1,11 @@
+/* Dashboard-wide overrides (loaded after main.css) */
+
+/* Smaller outer margin on shorter screens (e.g. laptops) to give modules more room */
+@media (max-height: 1000px) {
+  :root {
+    --gap-body-top: 30px;
+    --gap-body-bottom: 30px;
+    --gap-body-left: 30px;
+    --gap-body-right: 30px;
+  }
+}

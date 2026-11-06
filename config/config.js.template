@@ -111,7 +111,7 @@ let config = {
 			  header: "Capital Bikeshare (Nearby)",
 			  stationIds: ["4f9000ec-e47e-494e-9b49-61e95b5a6f03", "082514b8-1f3f-11e7-bf6b-3863bb334450"],
 			  updateInterval: 30 * 1000,
-			  showDocks: true
+			  showDocks: false
 			}
 		  }
 		  

@@ -74,6 +74,7 @@ Temporary Items
 !/css/main.css
 !/css/roboto.css
 !/css/font-awesome.css
+!/css/custom.css
 
 # Ignore users config file but keep the sample.
 /config/*
