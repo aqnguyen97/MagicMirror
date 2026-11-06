@@ -26,14 +26,26 @@ Module.register("MMM-WMATA", {
         trainWalkMinutes: 0,      // minutes to walk to the station; 0 turns off leave-now coloring
         busWalkMinutes: 0,        // minutes to walk to the bus stop
         leaveNowWindow: 3,        // arrivals within walk..walk+window minutes are shown as "leave now"
+        showWalkTimes: true,      // show "· N min walk" in the column headers
         laterArrivals: 2,         // how many following arrivals to show next to the big number
         busStopsLabel: null,      // header for the bus column; defaults to the first stop's name
+        ignoreBusRoutes: {},      // routes to hide per stop, e.g. { "1001653": ["C57"] }
+        // Optional: combine stops/routes into one row each, showing whichever bus comes next.
+        // [{ label: "Florida & Georgia", detail: "Northbound", stops: ["1001653"], routes: ["C51", "C53"], walkMinutes: 3 }, ...]
+        // detail (a smaller second line), routes and walkMinutes are optional.
+        // When set, busStops is filled in from the groups.
+        busGroups: [],
     },
 
     /**
      * Core method, called when all modules are loaded and the system is ready to boot up.
      */
     start() {
+        if (this.config.busGroups.length > 0) {
+            const stops = this.config.busGroups.flatMap((group) => group.stops);
+            this.config.busStops = [...new Set([...this.config.busStops, ...stops])];
+        }
+
         this.apiKey = null;
         this.initialized = false;
 
@@ -157,6 +169,7 @@ Module.register("MMM-WMATA", {
             trainStationName: trains ? trains.stationName : null,
             trainRows: trains ? trains.rows : [],
             trainWalkMinutes: this.config.trainWalkMinutes,
+            showWalkTimes: this.config.showWalkTimes,
 
             showBuses: this.config.busStops.length > 0,
             busLabel: this.config.busStopsLabel || (buses ? buses.stopName : null) || "Buses",
@@ -185,13 +198,14 @@ Module.register("MMM-WMATA", {
      * Turns a list of arrival rows (each with a `minutes` array) into display rows:
      * the next arrival, a few later ones, and a status for the leave-now coloring.
      */
-    finishRows(rows, walkMinutes) {
+    finishRows(rows, defaultWalkMinutes) {
         return rows.map((row) => {
             const minutes = row.minutes.sort((a, b) => a - b);
             const next = minutes[0];
+            const walkMinutes = row.walkMinutes ?? defaultWalkMinutes;
 
             let status = "";
-            if (walkMinutes > 0) {
+            if (next !== undefined && walkMinutes > 0) {
                 if (next < walkMinutes) {
                     status = "missed";
                 } else if (next < walkMinutes + this.config.leaveNowWindow) {
@@ -201,6 +215,7 @@ Module.register("MMM-WMATA", {
 
             return {
                 ...row,
+                hasNext: next !== undefined,
                 next,
                 later: minutes.slice(1, 1 + this.config.laterArrivals),
                 status,
@@ -359,13 +374,20 @@ Module.register("MMM-WMATA", {
     },
 
     formatBuses(busPredictions) {
+        if (this.config.busGroups.length > 0) {
+            return this.formatBusGroups(busPredictions);
+        }
+
         const rowsByKey = new Map();
         let stopName = null;
 
-        for (const stopInfo of Object.values(busPredictions)) {
+        for (const [stopID, stopInfo] of Object.entries(busPredictions)) {
             stopName = stopName || stopInfo["locationName"];
+            const ignoredRoutes = this.config.ignoreBusRoutes[stopID] || [];
 
             for (const prediction of stopInfo["predictions"] || []) {
+                if (ignoredRoutes.includes(prediction["RouteID"])) continue;
+
                 const key = `${prediction["RouteID"]}|${prediction["DirectionText"]}`;
 
                 if (!rowsByKey.has(key)) {
@@ -383,6 +405,35 @@ Module.register("MMM-WMATA", {
             .sort((a, b) => a.next - b.next);
 
         return { stopName, rows };
+    },
+
+    /**
+     * One row per configured group: every matching bus from the group's stops,
+     * merged, with the route badge of whichever arrives first. Rows keep config order.
+     */
+    formatBusGroups(busPredictions) {
+        const rows = this.config.busGroups.map((group) => {
+            const arrivals = [];
+
+            for (const stopID of group.stops) {
+                for (const prediction of busPredictions[stopID]?.predictions || []) {
+                    if (group.routes && !group.routes.includes(prediction["RouteID"])) continue;
+                    arrivals.push({ minutes: prediction["Minutes"], route: prediction["RouteID"] });
+                }
+            }
+
+            arrivals.sort((a, b) => a.minutes - b.minutes);
+
+            return {
+                route: arrivals.length > 0 ? arrivals[0].route : (group.routes || []).join("/"),
+                direction: group.label,
+                detail: group.detail,
+                minutes: arrivals.map((a) => a.minutes),
+                walkMinutes: group.walkMinutes,
+            };
+        });
+
+        return { stopName: null, rows: this.finishRows(rows, this.config.busWalkMinutes) };
     },
 
     formatTrainLine(trainLine) {

@@ -1,6 +1,8 @@
 {% macro arrival(row) %}
     <span class="wmata-row__next wmata-row__next--{{ row.status }}">
-        {% if row.next == 0 %}
+        {% if not row.hasNext %}
+            <span class="wmata-row__none">—</span>
+        {% elif row.next == 0 %}
             <span class="wmata-row__now">Now</span>
         {% else %}
             {{ row.next }}<span class="wmata-row__unit">min</span>
@@ -26,9 +28,12 @@
         {% if showTrains %}
         <div class="wmata-column">
             <div class="wmata-column__header">
-                <i class="fas fa-train-subway"></i>
-                {{ trainStationName or "Metro" }}
-                {% if trainWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ trainWalkMinutes }} min walk</span>{% endif %}
+                <span class="wmata-column__title">
+                    <i class="fas fa-train-subway"></i>
+                    {{ trainStationName or "Metro" }}
+                    {% if showWalkTimes and trainWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ trainWalkMinutes }} min walk</span>{% endif %}
+                </span>
+                {% if updated and not showBuses %}<span class="wmata-updated">Updated {{ updated }}</span>{% endif %}
             </div>
 
             {% for row in trainRows %}
@@ -46,15 +51,21 @@
         {% if showBuses %}
         <div class="wmata-column">
             <div class="wmata-column__header">
-                <i class="fas fa-bus"></i>
-                {{ busLabel }}
-                {% if busWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ busWalkMinutes }} min walk</span>{% endif %}
+                <span class="wmata-column__title">
+                    <i class="fas fa-bus"></i>
+                    {{ busLabel }}
+                    {% if showWalkTimes and busWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ busWalkMinutes }} min walk</span>{% endif %}
+                </span>
+                {% if updated %}<span class="wmata-updated">Updated {{ updated }}</span>{% endif %}
             </div>
 
             {% for row in busRows %}
                 <div class="wmata-row">
                     <span class="wmata-route">{{ row.route }}</span>
-                    <span class="wmata-row__name">{{ row.direction }}</span>
+                    <span class="wmata-row__name">
+                        {{ row.direction }}
+                        {% if row.detail %}<span class="wmata-row__detail">{{ row.detail }}</span>{% endif %}
+                    </span>
                     {{ arrival(row) }}
                 </div>
             {% else %}
@@ -64,9 +75,5 @@
         {% endif %}
 
     </div>
-
-    {% if updated %}
-        <div class="wmata-updated">Updated {{ updated }}</div>
-    {% endif %}
 </div>
 {% endif %}

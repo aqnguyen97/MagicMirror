@@ -1,5 +1,55 @@
 /* Dashboard-wide overrides (loaded after main.css) */
 
+/* ------------------------------------------------------------------
+ * Layout: date and time centered across the top (top_bar), then two
+ * equal columns that start at the same height:
+ *   left  (top_left):  vertical week calendar
+ *   right (top_right): weather, transit, bikeshare
+ * ------------------------------------------------------------------ */
+:root {
+  --column-gap: 30px;
+  --gap-modules: 20px;	/* space between stacked cards (main.css default is 30px) */
+}
+
+.region.top.bar .module.clock {
+  margin-bottom: 20px;
+}
+
+.region.top.left,
+.region.top.right {
+  width: calc((100% - var(--column-gap)) / 2);
+}
+
+.region.top.right .container > .module {
+  text-align: left;
+}
+
+/* Every card fills its column */
+.region.top.left .module,
+.region.top.right .module {
+  min-width: 0;
+}
+
+.MMM-WMATA .wmata,
+.MMM-CaBiStatus .cabi {
+  min-width: 0;
+}
+
+/* Transit card is half the screen wide now: give the bus side (longer stop names)
+   more room than the train side */
+.MMM-WMATA .wmata-columns {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 28px;
+}
+
+/* Shorter screens (e.g. laptops): smaller clock so the right column fits */
+@media (max-height: 1000px) {
+  .region.top.bar .module.clock { margin-bottom: 12px; }
+  .region.top.bar .clock .date { font-size: 22px; line-height: 1.2; }
+  .region.top.bar .clock .time { font-size: 46px; line-height: 1; }
+  .region.top.bar .clock .clock-second-digital { font-size: 22px; }
+}
+
 /* Smaller outer margin on shorter screens (e.g. laptops) to give modules more room */
 @media (max-height: 1000px) {
   :root {
@@ -11,102 +61,59 @@
 }
 
 /* ------------------------------------------------------------------
- * MMM-CalendarExt3: card style matching the transit and bikeshare panels.
- * Overrides live here so the calendar module itself stays untouched.
+ * Today's weather: three built-in "weather" modules (class weather-today)
+ * drawn as one card matching the other panels.
+ *
+ *   +--------------------------+-----------+
+ *   | current (big temp)       | forecast  |   <- today's H / L / rain
+ *   +--------------------------+-----------+
+ *   | hourly (next 6 hours, full width)    |
+ *   +--------------------------------------+
  * ------------------------------------------------------------------ */
-.MMM-CalendarExt3 .CX3 {
-  --celllinecolor: #333;
-  --cellbgcolor: transparent;
-
-  box-sizing: border-box;
-  border: 1px solid #444;
-  border-radius: 16px;
-  padding: 12px 14px 14px;
+.region.top.right .container:has(.weather-today) {
+  display: grid;
+  grid-template-columns: 1fr auto;
 }
 
-/* Weekday names: muted, like the card headers */
-.MMM-CalendarExt3 .CX3 .weekday {
-  color: #888;
-  font-size: 16px;
-  padding-bottom: 4px;
+/* The weather parts drop their bottom margin to join into one card; restore the
+   usual gap between the weather card and the transit card below it */
+.region.top.right .container > .MMM-WMATA {
+  margin-top: var(--gap-modules);
 }
 
-/* Days separated by thin dividers instead of boxed cells */
-.MMM-CalendarExt3 .CX3 .cell,
-.MMM-CalendarExt3 .CX3 .thisMonth {
-  border: none;
-  border-left: 0.5px solid var(--celllinecolor);
-  background-color: transparent;
+/* Everything in the right column except the two top weather halves spans full width */
+.region.top.right .container > .module:not(.weather-today--current, .weather-today--forecast) {
+  grid-column: 1 / -1;
 }
 
-.MMM-CalendarExt3 .CX3 .cell:first-child {
-  border-left: none;
-}
-
-/* Date numbers: muted and left-aligned */
-.MMM-CalendarExt3 .CX3 .cellHeader {
-  justify-content: flex-start;
-  text-align: left;
-  color: #888;
-  font-size: 15px;
-  padding: 2px 6px;
-}
-
-/* Today: soft highlight instead of a hard white border */
-.MMM-CalendarExt3 .CX3 .cell.today {
-  border-left-color: transparent;
-  background-color: rgb(255 255 255 / 7%);
-  border-radius: 10px;
-}
-
-.MMM-CalendarExt3 .CX3 .cell.today + .cell {
-  border-left-color: transparent;
-}
-
-.MMM-CalendarExt3 .CX3 .today .cellDate {
-  background-color: #fff;
-  color: #000;
-  border-radius: 10px;
-  padding: 1px 8px;
-  flex: none;
-}
-
-/* Hide the gold calendar-week number */
-.MMM-CalendarExt3 .CX3 .cw {
-  display: none !important;
-}
-
-/* Events: a little more breathing room and rounded edges */
-.MMM-CalendarExt3 .CX3 .event {
-  margin: 1px 4px;
-  padding: 0 4px;
-  border-radius: 6px;
-}
-
-.MMM-CalendarExt3 .CX3 .event.passed {
-  opacity: 0.45;
-}
-
-/* ------------------------------------------------------------------
- * Today's weather (two built-in "weather" modules with the
- * weather-today class): drawn as one card matching the other panels.
- * The current-conditions module is the top half, the forecast the bottom.
- * ------------------------------------------------------------------ */
 .weather-today {
-  min-width: 340px;
   text-align: left;
-  border: 1px solid #444;
-}
-
-.weather-today--current {
-  border-bottom: none;
-  border-radius: 16px 16px 0 0;
-  padding: 14px 20px 6px;
+  border: 0 solid #444;
   margin-bottom: 0 !important;
 }
 
+/* Top-left: current conditions */
+.weather-today--current {
+  min-width: 240px;
+  border-width: 1px 0 0 1px;
+  border-radius: 16px 0 0 0;
+  padding: 14px 0 6px 20px;
+}
+
+/* Top-right: today's high / low / rain, stacked and right-aligned */
 .weather-today--forecast {
-  border-top: none;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 16px 0 0;
+  padding: 14px 20px 6px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Bottom: hourly strip across the full width */
+.weather-today--hourly {
+  grid-column: 1 / -1;
+  border-width: 0 1px 1px;
   border-radius: 0 0 16px 16px;
   padding: 0 20px 12px;
 }
@@ -121,6 +128,7 @@
   line-height: 1.4;
   padding-bottom: 0;
   margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .weather-today--current .module-header::before {
@@ -130,7 +138,8 @@
   margin-right: 6px;
 }
 
-.weather-today--forecast .module-header {
+.weather-today--forecast .module-header,
+.weather-today--hourly .module-header {
   display: none !important;
 }
 
@@ -155,42 +164,54 @@
   color: #888;
 }
 
-/* Today's forecast row: divider above, H / L labels, muted rain amount */
-.weather-today--forecast table {
-  width: 100%;
-  border-top: 0.5px solid #333;
-  margin-top: 8px;
-  font-size: 20px;
+/* Today's forecast: the module renders one table row (day, icon, H, L, rain);
+   show only H / L / rain, one per line */
+.weather-today--forecast table,
+.weather-today--forecast tbody {
+  display: block;
+}
+
+.weather-today--forecast tr {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 
 .weather-today--forecast td {
-  padding: 8px 0 0;
+  padding: 0 !important;
+  line-height: 1.2;
 }
 
-.weather-today--forecast .day {
-  color: #888;
-  padding-right: 10px;
-}
-
+.weather-today--forecast .day,
 .weather-today--forecast .weather-icon {
-  text-align: center;
+  display: none;
+}
+
+.weather-today--forecast .max-temp {
+  font-size: 26px;
 }
 
 .weather-today--forecast .max-temp::before {
   content: "H ";
   color: #888;
+  font-size: 18px;
 }
 
 .weather-today--forecast .min-temp {
   color: #888;
+  font-size: 22px;
 }
 
 .weather-today--forecast .min-temp::before {
   content: "L ";
+  font-size: 18px;
 }
 
 .weather-today--forecast .precipitation-amount {
   color: #888;
+  font-size: 16px;
+  margin-top: 2px;
 }
 
 .weather-today--forecast .precipitation-amount::before {
@@ -198,5 +219,67 @@
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
   margin-right: 4px;
+  font-size: 14px;
+}
+
+/* Hourly forecast: the module renders one table row per hour; lay the rows
+   out side by side as columns (time, icon, temperature, chance of rain) */
+.weather-today--hourly table {
+  width: 100%;
+  border-top: 0.5px solid #333;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.weather-today--hourly tbody {
+  display: flex;
+  justify-content: space-between;
+}
+
+.weather-today--hourly tr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.weather-today--hourly td {
+  /* !important beats the weather module's own side padding on .day and rain cells */
+  padding: 0 !important;
+  text-align: center !important;
+  line-height: 1.2;
+}
+
+.weather-today--hourly .day {
+  color: #888;
   font-size: 15px;
+}
+
+.weather-today--hourly .weather-icon {
+  font-size: 22px;
+  padding: 2px 0;
+}
+
+.weather-today--hourly td:nth-child(3) {
+  font-size: 20px;
+  padding-left: 0.3em !important; /* offsets the trailing ° so the digits sit on the center line */
+}
+
+.weather-today--hourly .precipitation-prob {
+  color: #7fb8ff;
+  font-size: 14px;
+}
+
+/* Shorter screens (e.g. laptops): tighten the weather card */
+@media (max-height: 1000px) {
+  .weather-today--current,
+  .weather-today--forecast { padding-top: 10px; }
+  .weather-today--current .large { font-size: 46px; }
+  .weather-today--current .large .weathericon { font-size: 34px; vertical-align: 6px; }
+  .weather-today--current .feelslike { font-size: 16px; }
+  .weather-today--forecast .max-temp { font-size: 22px; }
+  .weather-today--forecast .min-temp { font-size: 19px; }
+  .weather-today--hourly { padding-bottom: 8px; }
+  .weather-today--hourly table { padding-top: 4px; }
+
 }

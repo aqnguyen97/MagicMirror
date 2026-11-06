@@ -13,9 +13,20 @@
 }
 
 .MMM-CaBiStatus .cabi__header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   color: var(--cabi-muted);
   font-size: 18px;
   margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.MMM-CaBiStatus .cabi__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* One row per station: name, bikes, e-bikes, docks */
@@ -85,10 +96,9 @@
 }
 
 .MMM-CaBiStatus .cabi__updated {
+  flex: none;
   color: #666;
   font-size: 14px;
-  text-align: right;
-  margin-top: 12px;
 }
 
 /* Compact sizing for shorter screens (e.g. laptops), matching MMM-WMATA */
@@ -97,5 +107,4 @@
   .MMM-CaBiStatus .cabi-row { padding: 4px 0; }
   .MMM-CaBiStatus .cabi-row__name { font-size: 19px; }
   .MMM-CaBiStatus .cabi-count__value { font-size: 32px; }
-  .MMM-CaBiStatus .cabi__updated { margin-top: 6px; }
 }

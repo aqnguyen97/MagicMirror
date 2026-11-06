@@ -63,8 +63,10 @@ Module.register("MMM-CaBiStatus", {
         const card = this.el("div", "cabi");
 
         const header = this.el("div", "cabi__header");
-        header.appendChild(this.el("i", "fas fa-bicycle"));
-        header.appendChild(document.createTextNode(` ${this.config.header}`));
+        const title = this.el("span", "cabi__title");
+        title.appendChild(this.el("i", "fas fa-bicycle"));
+        title.appendChild(document.createTextNode(` ${this.config.header}`));
+        header.appendChild(title);
         card.appendChild(header);
 
         if (!this.loaded) {
@@ -97,10 +99,11 @@ Module.register("MMM-CaBiStatus", {
             card.appendChild(this.el("div", "cabi__empty", "No station data"));
         }
 
+        // "Updated" time sits at the right end of the header line
         const latest = Math.max(0, ...Object.values(this.stations).map(s => s.lastReported || 0));
         if (latest) {
             const time = new Date(latest * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-            card.appendChild(this.el("div", "cabi__updated", `Updated ${time}`));
+            header.appendChild(this.el("span", "cabi__updated", `Updated ${time}`));
         }
 
         return card;

@@ -34,27 +34,16 @@ let config = {
 			   // see https://en.wikipedia.org/wiki/Locale_(computer_software) for the possibilities
 
 	logLevel: ["INFO", "LOG", "WARN", "ERROR"], // Add "DEBUG" for even more logging
-	timeFormat: 24,
+	timeFormat: 12,
 	units: "metric",
 
 	modules: [
 		{
-			module: "clock",
-			position: "top_left"
+			module: "MMM-DashboardTweaks",	// no position: small display fixes for other modules
 		},
 		{
-			module: "MMM-WMATA",
-			position: "bottom_left",
-			config: {
-				apiKey: "${WMATA_API_KEY}",
-				trainStations: ['E02'],
-				busStops: ['1001606', '1001602'],
-				showBusIncidents: false,
-				showTrainIncidents: false,
-				busStopsLabel: "7th St & S St",
-				trainWalkMinutes: 5,	// minutes to walk to Shaw-Howard; adjust to your real time
-				busWalkMinutes: 2,	// minutes to walk to the bus stops
-			}
+			module: "clock",
+			position: "top_bar"	// centered across the top
 		},
 		/* Today's weather: current conditions + today's high/low and expected rain (Open-Meteo, no API key) */
 		{
@@ -93,11 +82,53 @@ let config = {
 				fade: false,
 			}
 		},
+		{
+			module: "weather",
+			position: "top_right",
+			classes: "weather-today weather-today--hourly",
+			config: {
+				weatherProvider: "openmeteo",
+				roundTemp: true,
+				units: "imperial",
+				tempUnits: "imperial",
+				windUnits: "imperial",
+				type: "hourly",
+				lat: 38.91,
+				lon: -77.02,
+				maxEntries: 6,	// next 6 hours
+				showPrecipitationProbability: true,
+				fade: false,
+			}
+		},
+		{
+			module: "MMM-WMATA",
+			position: "top_right",
+			config: {
+				apiKey: "${WMATA_API_KEY}",
+				trainStations: ['E02'],
+				// One row per group: whichever listed bus comes next at those stops.
+				// label = stop, detail = smaller second line. Add walkMinutes to a group to override busWalkMinutes.
+				busGroups: [
+					{ label: "7th & S", detail: "Northbound · Silver Spring", stops: ['1001606'], routes: ['D40'] },
+					{ label: "7th & S", detail: "Southbound · Archives", stops: ['1001602'], routes: ['D40'] },
+					{ label: "Florida & 6th", detail: "Southbound", stops: ['1001632'], routes: ['C51', 'C53'], walkMinutes: 6 },	// estimate: ~200 m past 7th & S
+					{ label: "Florida & Georgia", detail: "Northbound", stops: ['1001653'], routes: ['C51', 'C53'], walkMinutes: 5 },	// estimate: ~200 m past 7th & S
+				],
+				showBusIncidents: false,
+				showTrainIncidents: false,
+				busStopsLabel: "Nearby buses",
+				trainWalkMinutes: 5,	// minutes to walk to Shaw-Howard; adjust to your real time
+				busWalkMinutes: 2,	// minutes to walk to the 7th & S stops (groups without their own walkMinutes)
+				showWalkTimes: false,	// walk times still drive the green/gray coloring, just not shown
+			}
+		},
 		/* default/calendar module configuration */
 		{
-			module: "calendar",
+			module: "calendar",	// no position: fetches events and shares them with MMM-WeekAgenda
 			config: {
 				broadcastPastEvents: true, // <= IMPORTANT to see past events
+				maximumEntries: 100,	// enough for a full week
+				maximumNumberOfDays: 8,
 				defaultSymbolClassName: '', // <-- Important to identify iconify properly.
 				calendars: [
 					{
@@ -116,22 +147,12 @@ let config = {
 			},
 		},  
 		{
-			module: "MMM-CalendarExt3",
-			position: "middle_center",
-			title: "My Calendar",
-			config: {
-				broadcastPastEvents: true,
-				mode: 'day',
-				weeksInView: 1,
-				weekIndex: 0,
-				calendarSet: ["meals", "house"],
-				useIconify: true,
-				useWeather: false,	// today's weather has its own card
-			}
+			module: "MMM-WeekAgenda",	// vertical week: expanded today + one row per day
+			position: "top_left",
 		},
 		{
 			module: "MMM-CaBiStatus",
-			position: "bottom_right",
+			position: "top_right",
 			config: {
 			  header: "Capital Bikeshare (Nearby)",
 			  stationIds: ["4f9000ec-e47e-494e-9b49-61e95b5a6f03", "082514b8-1f3f-11e7-bf6b-3863bb334450"],

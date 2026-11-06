@@ -66,6 +66,10 @@ Temporary Items
 !/modules/MMM-CaBiStatus/**
 !/modules/MMM-WMATA
 !/modules/MMM-WMATA/**
+!/modules/MMM-DashboardTweaks
+!/modules/MMM-DashboardTweaks/**
+!/modules/MMM-WeekAgenda
+!/modules/MMM-WeekAgenda/**
 /modules/*/node_modules/
 
 # Ignore changes to the custom css files but keep the sample and main.
