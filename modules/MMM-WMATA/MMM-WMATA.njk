@@ -1,9 +1,17 @@
-{# Header status: a colored dot, or after a long time without data a warning with the last update time #}
-{% macro statusIndicator(status, lastUpdatedLabel) %}
-    {% if status == "error" %}
-        <span class="status-error"><i class="fas fa-triangle-exclamation"></i> {{ "Last updated " + lastUpdatedLabel if lastUpdatedLabel else "Can't load data" }}</span>
-    {% elif status %}
-        <span class="status-dot status-dot--{{ status }}"></span>
+{# Status for one feed (trains or buses), shown in two places:
+   - statusText: warning next to the card title after 30 min (or if it never loaded)
+   - statusBar:  the card's bottom edge (styles in css/custom.css) #}
+{% macro statusText(s) %}
+    {% if s.state == "error" %}
+        <span class="status-error"><i class="fas fa-triangle-exclamation"></i> {{ "Last updated " + s.label if s.label else "Can't load data" }}</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro statusBar(s) %}
+    {% if s.state %}
+        {% set barState = "stale" if s.state == "error" else s.state %}
+        <div class="status-bar status-bar--{{ barState }}{% if s.flash and s.state == 'fresh' %} status-bar--flash{% endif %}"
+             {% if s.state == "fresh" %}style="--bar-duration: {{ s.duration }}s; --bar-age: {{ s.age }}s"{% endif %}></div>
     {% endif %}
 {% endmacro %}
 
@@ -44,7 +52,7 @@
                     {{ trainStationName or "Metro" }}
                     {% if showWalkTimes and trainWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ trainWalkMinutes }} min walk</span>{% endif %}
                 </span>
-                {% if not showBuses %}{{ statusIndicator(status, lastUpdatedLabel) }}{% endif %}
+                {{ statusText(trainStatus) }}
             </div>
 
             {% for row in trainRows %}
@@ -56,6 +64,8 @@
             {% else %}
                 <div class="wmata-empty">No trains scheduled</div>
             {% endfor %}
+
+            {{ statusBar(trainStatus) }}
         </div>
         {% endif %}
 
@@ -67,7 +77,7 @@
                     {{ busLabel }}
                     {% if showWalkTimes and busWalkMinutes > 0 %}<span class="wmata-column__walk">· {{ busWalkMinutes }} min walk</span>{% endif %}
                 </span>
-                {{ statusIndicator(status, lastUpdatedLabel) }}
+                {{ statusText(busStatus) }}
             </div>
 
             {% for row in busRows %}
@@ -82,6 +92,8 @@
             {% else %}
                 <div class="wmata-empty">{{ "No buses scheduled" if busesLoaded else "Loading buses…" }}</div>
             {% endfor %}
+
+            {{ statusBar(busStatus) }}
         </div>
         {% endif %}
 

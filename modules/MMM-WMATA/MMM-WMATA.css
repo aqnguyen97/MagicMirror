@@ -6,11 +6,16 @@
 
   min-width: 640px;
   text-align: left;
+}
 
-  /* Card look: rounded outline around the whole panel */
+/* Trains and buses are drawn as two cards side by side. Each card's bottom
+   edge is its status bar (styles in css/custom.css). */
+.MMM-WMATA .wmata-column {
+  position: relative;
+  overflow: hidden;
   border: 1px solid #444;
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 16px 20px 18px;
 }
 
 /* Alert banner: only rendered when there are delays or alerts */
@@ -41,7 +46,8 @@
 }
 
 .MMM-WMATA .wmata-column__title {
-  flex: 1;
+  /* Title takes only its own width so the status indicator sits right after it */
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,30 +162,9 @@
   padding: 6px 0;
 }
 
-/* Data status dot at the right end of the last column's header:
-   green = fresh, amber = getting old, red = out of date */
-.MMM-WMATA .status-dot {
-  flex: none;
-  align-self: center;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.MMM-WMATA .status-dot--fresh { background: #3fa66b; opacity: 0.7; }
-.MMM-WMATA .status-dot--aging { background: #ffb020; }
-.MMM-WMATA .status-dot--stale { background: #ff5a4f; }
-
-/* After statusErrorMinutes without data: warning icon + last update time */
-.MMM-WMATA .status-error {
-  flex: none;
-  color: #ff5a4f;
-  font-size: 14px;
-}
-
 /* Compact sizing for shorter screens (e.g. laptops) so the card doesn't run into the calendar */
 @media (max-height: 1000px) {
-  .MMM-WMATA .wmata { padding: 12px 18px; }
+  .MMM-WMATA .wmata-column { padding: 12px 16px 14px; }
   .MMM-WMATA .wmata-row { height: 48px; }
   .MMM-WMATA .wmata-row__name { font-size: 19px; }
   .MMM-WMATA .wmata-row__next { font-size: 32px; }
@@ -207,8 +192,11 @@
   font-size: 28px;
 }
 
-/* Loading / can't-load message, shown inside the card frame */
+/* Loading / can't-load message (before any data), drawn as a card */
 .MMM-WMATA .wmata--message {
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 16px 20px;
   color: var(--wmata-muted);
   font-size: 18px;
 }

@@ -9,7 +9,9 @@
   text-align: left;
   border: 1px solid #444;
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 16px 20px 18px;
+  position: relative;   /* status bar sits along the bottom edge */
+  overflow: hidden;
 }
 
 .MMM-CaBiStatus .cabi__header {
@@ -23,7 +25,8 @@
 }
 
 .MMM-CaBiStatus .cabi__title {
-  flex: 1;
+  /* Title takes only its own width so the status indicator sits right after it */
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -93,26 +96,6 @@
   color: var(--cabi-muted);
   font-size: 18px;
   padding: 6px 0;
-}
-
-/* Data status dot at the right end of the header (matches MMM-WMATA) */
-.MMM-CaBiStatus .status-dot {
-  flex: none;
-  align-self: center;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.MMM-CaBiStatus .status-dot--fresh { background: #3fa66b; opacity: 0.7; }
-.MMM-CaBiStatus .status-dot--aging { background: #ffb020; }
-.MMM-CaBiStatus .status-dot--stale { background: #ff5a4f; }
-
-/* After statusErrorMinutes without data: warning icon + last update time */
-.MMM-CaBiStatus .status-error {
-  flex: none;
-  color: #ff5a4f;
-  font-size: 14px;
 }
 
 /* Compact sizing for shorter screens (e.g. laptops), matching MMM-WMATA */

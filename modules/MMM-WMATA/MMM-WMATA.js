@@ -108,6 +108,7 @@ Module.register("MMM-WMATA", {
 
                     this.formattedTrainData = this.formatTrains(payload.trainData);
 
+                    this.trainFlashPending = true;   // train status ring flashes on this redraw
                     this.updateDom();
 
                     break;
@@ -126,6 +127,7 @@ Module.register("MMM-WMATA", {
 
                     this.formattedBusData = this.formatBuses(payload.busPredictions);
 
+                    this.busFlashPending = true;   // bus status ring flashes on this redraw
                     this.updateDom();
                     break;
                 case "WMATA_TRAIN_INCIDENTS_DATA":
@@ -185,42 +187,46 @@ Module.register("MMM-WMATA", {
             busesLoaded: buses !== null,
 
             notices: this.buildNotices(),
-            status: this.dataStatus(),
-            lastUpdatedLabel: this.lastUpdatedLabel(),
+            trainStatus: this.feedStatus("train"),
+            busStatus: this.feedStatus("bus"),
         };
     },
 
     /**
-     * "fresh", "aging" or "stale" depending on how long ago the oldest feed (trains or
-     * buses) last updated; null until both have loaded once.
+     * Status of one feed ("train" or "bus") for its column header:
+     *   state: null (still starting up), "fresh", "late", "aging", "stale" or "error"
+     *   label: last update time for the error state (null if it never loaded)
+     *   flash: true once, on the redraw right after new data arrived
+     *   duration / age: seconds, for the refresh ring's fill
      */
-    dataStatus() {
-        const timestamps = [];
-        if (this.config.trainStations.length > 0) timestamps.push(Number(this.trainTimesLastUpdatedTimestamp) || 0);
-        if (this.config.busStops.length > 0) timestamps.push(Number(this.busTimesLastUpdatedTimestamp) || 0);
-        if (timestamps.length === 0) return null;
+    feedStatus(feed) {
+        const timestamp = Number(feed === "train" ? this.trainTimesLastUpdatedTimestamp : this.busTimesLastUpdatedTimestamp) || 0;
+        const duration = feed === "train" ? this.config.trainUpdateInterval : this.config.busUpdateInterval;
+        const flashKey = feed === "train" ? "trainFlashPending" : "busFlashPending";
 
-        // A feed that has never loaded: nothing yet during startup, then an error
-        if (timestamps.includes(0)) {
+        const flash = this[flashKey] === true;
+        this[flashKey] = false;
+
+        if (!timestamp) {
             const waitedMinutes = (Date.now() - this.startedAt) / 60000;
-            return waitedMinutes >= this.config.loadTimeoutMinutes ? "error" : null;
+            return { state: waitedMinutes >= this.config.loadTimeoutMinutes ? "error" : null, label: null };
         }
 
-        const ageMinutes = (Date.now() - Math.min(...timestamps)) / 60000;
-        if (ageMinutes >= this.config.statusErrorMinutes) return "error";
-        if (ageMinutes >= this.config.statusStaleMinutes) return "stale";
-        if (ageMinutes >= this.config.statusAgingMinutes) return "aging";
-        return "fresh";
-    },
+        const ageSeconds = (Date.now() - timestamp) / 1000;
+        const ageMinutes = ageSeconds / 60;
+        let state = "fresh";
+        if (ageMinutes >= this.config.statusErrorMinutes) state = "error";
+        else if (ageMinutes >= this.config.statusStaleMinutes) state = "stale";
+        else if (ageMinutes >= this.config.statusAgingMinutes) state = "aging";
+        else if (ageSeconds >= duration) state = "late";   // next update overdue, still under 2 min
 
-    /** Time of the oldest feed's last update, e.g. "8:31 pm" (shown in the error state). */
-    lastUpdatedLabel() {
-        const timestamps = [];
-        if (this.config.trainStations.length > 0) timestamps.push(Number(this.trainTimesLastUpdatedTimestamp) || 0);
-        if (this.config.busStops.length > 0) timestamps.push(Number(this.busTimesLastUpdatedTimestamp) || 0);
-        const oldest = Math.min(...timestamps);
-        // null for a feed that never loaded; the template then says "Can't load data"
-        return oldest ? moment(oldest).format(config.timeFormat === 24 ? "HH:mm" : "h:mm a") : null;
+        return {
+            state,
+            label: moment(timestamp).format(config.timeFormat === 24 ? "HH:mm" : "h:mm a"),
+            flash,
+            duration,
+            age: ageSeconds.toFixed(1),
+        };
     },
 
     buildNotices() {

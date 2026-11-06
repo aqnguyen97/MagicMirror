@@ -3,8 +3,8 @@
  * Has no position and draws nothing itself.
  *
  * - Hourly weather: shows "8 pm" instead of "8:00 pm".
- * - With a position: a one-line legend for the status dots on the transit and
- *   bikeshare cards (keep the minutes in sync with those modules' config).
+ * - With a position: a one-line legend for the status bars along the bottom of the
+ *   transit and bikeshare cards (keep the minutes in sync with those modules' config).
  */
 Module.register("MMM-DashboardTweaks", {
     defaults: {
@@ -19,6 +19,7 @@ Module.register("MMM-DashboardTweaks", {
 
         const items = [
             ["fresh", `Updated < ${this.config.statusAgingMinutes} min ago`],
+            ["late", "Update late"],
             ["aging", `${this.config.statusAgingMinutes}–${this.config.statusStaleMinutes} min`],
             ["stale", `Over ${this.config.statusStaleMinutes} min`]
         ];
@@ -26,9 +27,9 @@ Module.register("MMM-DashboardTweaks", {
         for (const [status, label] of items) {
             const item = document.createElement("span");
             item.className = "status-legend__item";
-            const dot = document.createElement("span");
-            dot.className = `status-dot status-dot--${status}`;
-            item.appendChild(dot);
+            const sample = document.createElement("span");
+            sample.className = `legend-bar legend-bar--${status}`;
+            item.appendChild(sample);
             item.appendChild(document.createTextNode(label));
             legend.appendChild(item);
         }

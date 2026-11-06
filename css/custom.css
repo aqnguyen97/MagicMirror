@@ -35,16 +35,17 @@
   min-width: 0;
 }
 
-/* Transit card is half the screen wide now: give the bus side (longer stop names)
-   more room than the train side */
+/* Transit is half the screen wide: give the bus card (longer stop names)
+   a little more room than the train card */
 .MMM-WMATA .wmata-columns {
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 28px;
+  gap: var(--gap-modules);
 }
 
 /* Narrower screens (e.g. laptops): tighten the transit card so stop names fit */
 @media (max-width: 1700px) {
-  .MMM-WMATA .wmata-columns { gap: 16px; }
+  .MMM-WMATA .wmata-columns { gap: 14px; }
+  .MMM-WMATA .wmata-column { padding-left: 14px; padding-right: 14px; }
   .MMM-WMATA .wmata-row { gap: 8px; }
   .MMM-WMATA .wmata-row__later { width: 48px; font-size: 16px; }
 }
@@ -307,13 +308,110 @@
 }
 
 /* ------------------------------------------------------------------
- * Status-dot legend (MMM-DashboardTweaks), one line under the right column.
- * Dot colors match the transit and bikeshare cards.
+ * Status bar: the bottom edge of each live card (trains, buses, bikeshare).
+ * The card needs position: relative and overflow: hidden; the modules add
+ *   <div class="status-bar status-bar--STATE [status-bar--flash]"
+ *        style="--bar-duration: 60s; --bar-age: 12s"></div>
+ * States:
+ *   fresh  green, fills over the refresh interval; continues from --bar-age
+ *   late   green, full and dimmed (next update overdue, still under 2 min)
+ *   aging  amber, thicker, slow pulse (2-5 min)
+ *   stale  red, thickest, fast pulse (5+ min; also 30+ min with header text)
+ *   flash  added on the redraw right after new data: glows full, then resets
+ * ------------------------------------------------------------------ */
+.status-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: #222;          /* track */
+  pointer-events: none;
+}
+
+.status-bar::before,
+.status-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+/* Fill */
+.status-bar--fresh::before {
+  background: #3fa66b;
+  opacity: 0.85;
+  width: 0;
+  animation: status-bar-fill var(--bar-duration, 60s) linear forwards;
+  animation-delay: calc(var(--bar-age, 0s) * -1);
+}
+
+.status-bar--late::before {
+  right: 0;
+  background: #3fa66b;
+  opacity: 0.4;
+}
+
+.status-bar--aging { height: 4px; }
+.status-bar--aging::before {
+  right: 0;
+  background: #ffb020;
+  animation: status-pulse 2.4s ease-in-out infinite;
+}
+
+.status-bar--stale { height: 5px; }
+.status-bar--stale::before {
+  right: 0;
+  background: #ff5a4f;
+  animation: status-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes status-bar-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* New data: a full, glowing bar holds briefly (~0.3s), then fades as the fill restarts */
+.status-bar--flash::after {
+  right: 0;
+  background: #3fa66b;
+  box-shadow: 0 0 10px 1px #3fa66b;
+  opacity: 0;
+  animation: status-bar-flash 0.8s ease-in forwards;
+}
+
+@keyframes status-bar-flash {
+  0%, 40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 30+ minutes or never loaded: warning text next to the card's title */
+.status-error {
+  flex: none;
+  color: #ff5a4f;
+  font-size: 14px;
+  animation: status-pulse 1.2s ease-in-out infinite;
+}
+
+/* Health corner (MMM-HealthStatus): amber pulses slowly, red faster */
+.MMM-HealthStatus .health-item--warn { animation: status-pulse 2.4s ease-in-out infinite; }
+.MMM-HealthStatus .health-item--bad { animation: status-pulse 1.2s ease-in-out infinite; }
+
+/* ------------------------------------------------------------------
+ * Status legend (MMM-DashboardTweaks), one line under the right column:
+ * small bar samples matching the cards' bottom edges.
  * ------------------------------------------------------------------ */
 .status-legend {
   display: flex;
   justify-content: flex-end;
-  gap: 22px;
+  align-items: center;
+  gap: 20px;
   color: #777;
   font-size: 13px;
 }
@@ -324,16 +422,30 @@
   gap: 7px;
 }
 
-.status-legend .status-dot {
+.legend-bar {
+  position: relative;
   display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: #2a2a2a;
+  overflow: hidden;
 }
 
-.status-legend .status-dot--fresh { background: #3fa66b; opacity: 0.7; }
-.status-legend .status-dot--aging { background: #ffb020; }
-.status-legend .status-dot--stale { background: #ff5a4f; }
+.legend-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.legend-bar--fresh::before { width: 60%; background: #3fa66b; opacity: 0.85; }
+.legend-bar--late::before { right: 0; background: #3fa66b; opacity: 0.4; }
+.legend-bar--aging { height: 4px; }
+.legend-bar--aging::before { right: 0; background: #ffb020; }
+.legend-bar--stale { height: 5px; }
+.legend-bar--stale::before { right: 0; background: #ff5a4f; }
 
 .status-legend__item--error i {
   color: #ff5a4f;

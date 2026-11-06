@@ -77,7 +77,8 @@ module.exports = NodeHelper.create({
                     trainData: trainDataFormatted,
                 });
             })
-        ;
+            // Network failures (timeouts, no internet): log and skip; the card's status bar ages
+            .catch((error) => Log.warn(`[MMM-WMATA] Train request failed: ${error.message}`));
     },
 
     formatTrainData(data) {
@@ -117,7 +118,9 @@ module.exports = NodeHelper.create({
                     identifier: payload.identifier,
                     busPredictions
                 });
-            });
+            })
+            // Network failures (timeouts, no internet): log and skip; the card's status bar ages
+            .catch((error) => Log.warn(`[MMM-WMATA] Bus request failed: ${error.message}`));
     },
 
     getBusStopPrediction(stopID) {
@@ -193,7 +196,9 @@ module.exports = NodeHelper.create({
                     trainAlerts: Array.from(trainAlerts),
                     trainDelays: Array.from(trainDelays)
                 });
-            });
+            })
+            // Network failures (timeouts, no internet): log and skip; the card's status bar ages
+            .catch((error) => Log.warn(`[MMM-WMATA] Train incidents request failed: ${error.message}`));
     },
 
     getBusIncidents(payload) {
@@ -255,7 +260,9 @@ module.exports = NodeHelper.create({
                     busAlerts: Array.from(busAlerts),
                     busDelays: Array.from(busDelays),
                 });
-            });
+            })
+            // Network failures (timeouts, no internet): log and skip; the card's status bar ages
+            .catch((error) => Log.warn(`[MMM-WMATA] Bus incidents request failed: ${error.message}`));
     },
 
 });

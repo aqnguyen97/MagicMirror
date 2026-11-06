@@ -38,6 +38,7 @@ Module.register("MMM-CaBiStatus", {
             this.stations = payload;
             this.loaded = true;
             this.lastFetched = Date.now();
+            this.flashPending = true;   // status dot flashes on this redraw
             this.updateDom();
         }
     },
@@ -117,23 +118,41 @@ Module.register("MMM-CaBiStatus", {
             card.appendChild(this.el("div", "cabi__empty", "No station data"));
         }
 
-        // Status dot at the right end of the header: green = fresh, amber = getting old, red = out of date
+        // Status: warning text next to the title after a long outage, and a status bar
+        // along the card's bottom edge (styles in css/custom.css)
         if (this.lastFetched) {
-            const ageMinutes = (Date.now() - this.lastFetched) / 60000;
+            const ageSeconds = (Date.now() - this.lastFetched) / 1000;
+            const ageMinutes = ageSeconds / 60;
+            const interval = this.config.updateInterval / 1000;
 
-            if (ageMinutes >= this.config.statusErrorMinutes) {
-                // Long outage: warning icon + when data last arrived
+            let state = "fresh";
+            if (ageMinutes >= this.config.statusErrorMinutes) state = "error";
+            else if (ageMinutes >= this.config.statusStaleMinutes) state = "stale";
+            else if (ageMinutes >= this.config.statusAgingMinutes) state = "aging";
+            else if (ageSeconds >= interval) state = "late";
+
+            if (state === "error") {
                 const time = moment(this.lastFetched).format(config.timeFormat === 24 ? "HH:mm" : "h:mm a");
                 const error = this.el("span", "status-error");
                 error.appendChild(this.el("i", "fas fa-triangle-exclamation"));
                 error.appendChild(document.createTextNode(` Last updated ${time}`));
                 header.appendChild(error);
-            } else {
-                let status = "fresh";
-                if (ageMinutes >= this.config.statusStaleMinutes) status = "stale";
-                else if (ageMinutes >= this.config.statusAgingMinutes) status = "aging";
-                header.appendChild(this.el("span", `status-dot status-dot--${status}`));
             }
+
+            const flash = this.flashPending && state === "fresh";
+            this.flashPending = false;
+
+            const bar = this.el("div", `status-bar status-bar--${state === "error" ? "stale" : state}${flash ? " status-bar--flash" : ""}`);
+            if (state === "fresh") {
+                bar.style.setProperty("--bar-duration", `${interval}s`);
+                bar.style.setProperty("--bar-age", `${ageSeconds.toFixed(1)}s`);
+            }
+            this.statusBar = bar;
+        }
+
+        if (this.statusBar) {
+            card.appendChild(this.statusBar);
+            this.statusBar = null;
         }
 
         return card;
